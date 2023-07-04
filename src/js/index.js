@@ -51,3 +51,45 @@ const inputTransferAmount = document.querySelector(".form__input--amount");
 const inputLoanAmount = document.querySelector(".form__input--loan-amount");
 const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
+
+//script
+
+function displayMovements(movements) {
+  containerMovements.innerHTML = "";
+  movements.forEach((item, index) => {
+    const type = item > 0 ? "deposit" : "withdrawal";
+    const html = `
+        <div class="movements__row">
+          <div class="movements__type movements__type--${type}">
+            ${index + 1} снятие
+          </div>
+          <div class="movements__date">3 дня назад</div>
+          <div class="movements__value">${item}</div>
+        </div>
+        `;
+    containerMovements.insertAdjacentHTML("afterbegin", html);
+  });
+}
+
+displayMovements(account1.movements);
+
+function createLogIn(accs) {
+  accs.forEach((acc) => {
+    acc.logIn = acc.owner
+      .toLowerCase()
+      .split(" ")
+      .map((item) => {
+        return item[0];
+      })
+      .join("");
+  });
+}
+createLogIn(accounts);
+
+function calcPrintBalance(movements) {
+  const balance = movements.reduce((prev, curr) => {
+    return prev + curr;
+  });
+  labelBalance.textContent = balance + "RUB";
+}
+calcPrintBalance(account1.movements);
