@@ -87,7 +87,7 @@ function displayMovements(movements, sort = false) {
             ${index + 1} ${typeMessage}
           </div>
           <div class="movements__date">3 дня назад</div>
-          <div class="movements__value">${item}</div>
+          <div class="movements__value">${item}₽</div>
         </div>
         `;
     containerMovements.insertAdjacentHTML("afterbegin", html);
@@ -172,8 +172,44 @@ const allBalance = accounts
 console.log(allBalance);
 
 let sorted = false;
-btnSort.addEventListener('click', (e) => {
+btnSort.addEventListener("click", (e) => {
   e.preventDefault();
   displayMovements(currentAccount.movements, !sorted);
   sorted = !sorted;
-})
+});
+
+let clicked = false;
+
+labelBalance.addEventListener("click", () => {
+  if (labelBalance.textContent.includes("₽") && !clicked) {
+    Array.from(document.querySelectorAll(".movements__value"), (item) => {
+      return (item.innerText = item.textContent.replace("₽", "RUB"));
+    });
+
+    labelSumIn.innerText = labelSumIn.textContent.replace("₽", "RUB");
+    labelSumOut.innerText = labelSumOut.textContent.replace("₽", "RUB");
+    labelSumInterest.innerText = labelSumInterest.textContent.replace(
+      "₽",
+      "RUB"
+    );
+    labelBalance.innerText = labelBalance.textContent.replace("₽", "RUB");
+    clicked = !clicked;
+  } else if (labelBalance.textContent.includes("RUB") && clicked) {
+    Array.from(document.querySelectorAll(".movements__value"), (item, i) => {
+      return (item.innerText = item.textContent.replace("RUB", "₽"));
+    });
+
+    labelSumIn.innerText = labelSumIn.textContent.replace("RUB", "₽");
+    labelSumOut.innerText = labelSumOut.textContent.replace("RUB", "₽");
+    labelSumInterest.innerText = labelSumInterest.textContent.replace(
+      "RUB",
+      "₽"
+    );
+    labelBalance.innerText = labelBalance.textContent.replace("RUB", "₽");
+    clicked = !clicked;
+  }
+});
+
+// labelSumIn
+// labelSumOut
+// labelSumInterest
