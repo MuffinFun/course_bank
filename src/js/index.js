@@ -54,25 +54,6 @@ const inputClosePin = document.querySelector(".form__input--pin");
 
 //script
 
-function displayMovements(movements) {
-  containerMovements.innerHTML = "";
-  movements.forEach((item, index) => {
-    const type = item > 0 ? "deposit" : "withdrawal";
-    const html = `
-        <div class="movements__row">
-          <div class="movements__type movements__type--${type}">
-            ${index + 1} снятие
-          </div>
-          <div class="movements__date">3 дня назад</div>
-          <div class="movements__value">${item}</div>
-        </div>
-        `;
-    containerMovements.insertAdjacentHTML("afterbegin", html);
-  });
-}
-
-displayMovements(account1.movements);
-
 function createLogIn(accs) {
   accs.forEach((acc) => {
     acc.logIn = acc.owner
@@ -86,13 +67,39 @@ function createLogIn(accs) {
 }
 createLogIn(accounts);
 
-function calcPrintBalance(movements) {
-  const balance = movements.reduce((prev, curr) => {
+function updateUi(acc) {
+  displayMovements(acc.movements);
+  calcPrintBalance(acc);
+  calcDisplaySum(acc.movements);
+}
+
+function displayMovements(movements, sort = false) {
+  containerMovements.innerHTML = "";
+
+  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+
+  movs.forEach((item, index) => {
+    const type = item > 0 ? "deposit" : "withdrawal";
+    const typeMessage = item > 0 ? "внесение" : "снятие";
+    const html = `
+        <div class="movements__row">
+          <div class="movements__type movements__type--${type}">
+            ${index + 1} ${typeMessage}
+          </div>
+          <div class="movements__date">3 дня назад</div>
+          <div class="movements__value">${item}</div>
+        </div>
+        `;
+    containerMovements.insertAdjacentHTML("afterbegin", html);
+  });
+}
+
+function calcPrintBalance(acc) {
+  acc.balance = acc.movements.reduce((prev, curr) => {
     return prev + curr;
   });
-  labelBalance.textContent = balance + "₽";
+  labelBalance.textContent = acc.balance + "₽";
 }
-calcPrintBalance(account1.movements);
 
 function calcDisplaySum(movements) {
   const income = movements.filter((e) => e > 0).reduce((p, c) => p + c);
@@ -104,4 +111,69 @@ function calcDisplaySum(movements) {
   labelSumInterest.textContent = income + out + "₽";
 }
 
-calcDisplaySum(account1.movements);
+let currentAccount;
+
+btnLogin.addEventListener("click", (e) => {
+  e.preventDefault();
+  currentAccount = accounts.find((e) => e.logIn === inputLoginUsername.value);
+  if (currentAccount && currentAccount.pin === +inputLoginPin.value) {
+    containerApp.style.opacity = "1";
+    inputLoginPin.value = inputLoginUsername.value = "";
+    updateUi(currentAccount);
+  }
+});
+
+btnTransfer.addEventListener("click", (e) => {
+  e.preventDefault();
+  const reciveAcc = accounts.find((acc) => acc.logIn === inputTransferTo.value);
+  const amount = +inputTransferAmount.value;
+  if (
+    reciveAcc &&
+    amount <= currentAccount.balance &&
+    amount > 0 &&
+    reciveAcc.logIn !== currentAccount.logIn
+  ) {
+    currentAccount.movements.push(-amount);
+    reciveAcc.movements.push(amount);
+    inputTransferTo.value = inputTransferAmount.value = "";
+    updateUi(currentAccount);
+  }
+});
+
+btnClose.addEventListener("click", (e) => {
+  e.preventDefault();
+  if (
+    inputCloseUsername.value === currentAccount.logIn &&
+    +inputClosePin.value === currentAccount.pin
+  ) {
+    const index = accounts.findIndex(
+      (acc) => acc.logIn === currentAccount.logIn
+    );
+    console.log(index);
+    accounts.splice(index, 1);
+    containerApp.style.opacity = "0";
+  }
+  inputCloseUsername.value = inputClosePin.value = "";
+});
+
+btnLoan.addEventListener("click", (e) => {
+  e.preventDefault();
+  if (+inputLoanAmount.value > 0) {
+    currentAccount.movements.push(+inputLoanAmount.value);
+    updateUi(currentAccount);
+  }
+  inputLoanAmount.value = "";
+});
+
+const allBalance = accounts
+  .map((e) => e.movements)
+  .flat()
+  .reduce((p, c) => p + c, 0);
+console.log(allBalance);
+
+let sorted = false;
+btnSort.addEventListener('click', (e) => {
+  e.preventDefault();
+  displayMovements(currentAccount.movements, !sorted);
+  sorted = !sorted;
+})
