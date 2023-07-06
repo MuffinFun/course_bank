@@ -90,6 +90,18 @@ function calcPrintBalance(movements) {
   const balance = movements.reduce((prev, curr) => {
     return prev + curr;
   });
-  labelBalance.textContent = balance + "RUB";
+  labelBalance.textContent = balance + "₽";
 }
 calcPrintBalance(account1.movements);
+
+function calcDisplaySum(movements) {
+  const income = movements.filter((e) => e > 0).reduce((p, c) => p + c);
+  labelSumIn.textContent = income + "₽";
+
+  const out = movements.filter((e) => e < 0).reduce((p, c) => p + c);
+  labelSumOut.textContent = Math.abs(out) + "₽";
+
+  labelSumInterest.textContent = income + out + "₽";
+}
+
+calcDisplaySum(account1.movements);
