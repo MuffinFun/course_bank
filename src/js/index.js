@@ -112,8 +112,13 @@ const inputLoanAmount = document.querySelector(".form__input--loan-amount");
 const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
 
+let currentAccount;
+let timer;
+let sorted = false;
+
 //script
 
+createLogIn(accounts);
 function createLogIn(accs) {
   accs.forEach((acc) => {
     acc.logIn = acc.owner
@@ -125,12 +130,32 @@ function createLogIn(accs) {
       .join("");
   });
 }
-createLogIn(accounts);
 
 function updateUi(acc) {
   displayMovements(acc);
   calcPrintBalance(acc);
   calcDisplaySum(acc);
+}
+
+function startLogOut() {
+  let time = 600;
+  function tick() {
+    const min = Math.trunc(time / 60)
+      .toString()
+      .padStart(2, 0);
+    const seconds = (time % 60).toString().padStart(2, 0);
+
+    labelTimer.textContent = `${min}:${seconds}`;
+
+    if (time == 0) {
+      clearInterval(timer);
+      containerApp.style.opacity = "0";
+    }
+    time--;
+  }
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
 }
 
 function formatMovementsData(date) {
@@ -207,8 +232,6 @@ function calcDisplaySum(acc) {
   labelSumInterest.textContent = formatMovementsMoney(income + out);
 }
 
-let currentAccount;
-
 btnLogin.addEventListener("click", (e) => {
   e.preventDefault();
   currentAccount = accounts.find((e) => e.logIn === inputLoginUsername.value);
@@ -230,7 +253,8 @@ btnLogin.addEventListener("click", (e) => {
       currentAccount.locale,
       options
     ).format(new Date());
-
+    if (timer) clearInterval(timer);
+    timer = startLogOut();
     updateUi(currentAccount);
   }
 });
@@ -250,6 +274,8 @@ btnTransfer.addEventListener("click", (e) => {
     currentAccount.movementsDates.push(new Date().toISOString());
     reciveAcc.movementsDates.push(new Date().toISOString());
     inputTransferTo.value = inputTransferAmount.value = "";
+    clearInterval(timer);
+    timer = startLogOut();
     updateUi(currentAccount);
   }
 });
@@ -276,17 +302,21 @@ btnLoan.addEventListener("click", (e) => {
     currentAccount.movementsDates.push(new Date().toISOString());
     updateUi(currentAccount);
   }
+  clearInterval(timer);
+  timer = startLogOut();
   inputLoanAmount.value = "";
 });
 
+btnSort.addEventListener("click", (e) => {
+  e.preventDefault();
+  displayMovements(currentAccount, !sorted);
+  clearInterval(timer);
+  timer = startLogOut();
+  sorted = !sorted;
+});
+
+//trash
 const allBalance = accounts
   .map((e) => e.movements)
   .flat()
   .reduce((p, c) => p + c, 0);
-
-let sorted = false;
-btnSort.addEventListener("click", (e) => {
-  e.preventDefault();
-  displayMovements(currentAccount, !sorted);
-  sorted = !sorted;
-});
